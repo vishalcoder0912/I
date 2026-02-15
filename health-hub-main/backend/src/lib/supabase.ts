@@ -1,36 +1,57 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-dotenv.config();
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
-const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
+// Public environment variables (safe for browser)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
+
+// Server-only environment variable
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Validate public config
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Supabase URL or Anon Key is missing. Please set SUPABASE_URL and SUPABASE_ANON_KEY in your environment variables'
-  );
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
-// Client for public/user operations
+/*
+|--------------------------------------------------------------------------
+| Public Client (Frontend Safe)
+|--------------------------------------------------------------------------
+*/
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Client for admin/service operations (use with caution)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+/*
+|--------------------------------------------------------------------------
+| Admin Client (Server Only)
+|--------------------------------------------------------------------------
+| Automatically becomes undefined in browser
+*/
+export const supabaseAdmin =
+  typeof window === 'undefined' && supabaseServiceRoleKey
+    ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+        auth:{persistSession:false}
+      })
+    : null;
 
-// Helper function to handle errors
-export const handleSupabaseError = (error: any) => {
-  console.error('Supabase Error:', error);
+/*
+|--------------------------------------------------------------------------
+| Standardized Helpers
+|--------------------------------------------------------------------------
+*/
+export const handleSupabaseError = (error: unknown) => {
+  const err = error as {message?:string;code?:string};
+
+  console.error('Supabase Error:', err);
+
   return {
-    error: true,
-    message: error?.message || 'An error occurred',
-    code: error?.code,
+    error:true,
+    message:err?.message ?? 'An error occurred',
+    code:err?.code ?? null,
   };
 };
 
-// Helper function for successful responses
-export const handleSuccess = (data: any, message = 'Success') => {
+export const handleSuccess = <T>(data: T, message = 'Success') => {
   return {
-    error: false,
+    error:false,
     data,
     message,
   };
