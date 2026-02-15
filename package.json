@@ -1,5 +1,1 @@
-{
-  "dependencies": {
-    "@supabase/supabase-js": "^2.95.3"
-  }
-}
+{"name":"health-hub","version":"1.0.0","description":"Health Hub - MERN Stack Application","private":true,"type":"module","scripts":{"dev":"concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"","build":"npm run build -w frontend && npm run build -w backend","install":"npm install && npm install -w frontend && npm install -w backend"},"workspaces":["health-hub-main/Frontend","health-hub-main/backend"],"dependencies":{"@supabase/supabase-js":"^2.95.3"},"devDependencies":{"concurrently":"^8.2.2"}}
